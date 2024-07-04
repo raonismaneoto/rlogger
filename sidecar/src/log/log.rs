@@ -5,7 +5,8 @@ pub struct Log {
     pub log_type: String,
     pub message: String,
     pub timestamp: String,
-    pub attributes: Vec<LogAttribute>
+    pub attributes: Vec<LogAttribute>,
+    pub index: String
 }
 
 #[derive(Deserialize, Serialize)]

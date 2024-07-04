@@ -1,3 +1,3 @@
 pub mod service;
-mod repo;
-mod log;
+pub mod repo;
+pub mod log;

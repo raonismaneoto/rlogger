@@ -1,2 +1,4 @@
 /target
 /sidecar/target
+/server/target
+/server/target/.rustc_info.json

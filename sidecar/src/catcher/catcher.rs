@@ -59,13 +59,17 @@ impl Catcher for SocketBasedCatcher {
 
             loop {
                 match listener.accept() {
-                    Ok((mut socket, addr)) => {
-                        println!("Got a client: {:?} - {:?}", socket, addr);
-                        socket.write_all(b"hello world");
-                        let mut response = String::new();
-                        socket.read_to_string(&mut response);
-                        println!("{}", response);
-                        std::io::stdout().flush().unwrap();
+                    Ok((socket, addr)) => {
+                        let mut socket_copy = socket.try_clone().unwrap();
+                        let addr_copy = addr.clone();
+                        thread::spawn(move || {
+                            println!("Got a client: {:?} - {:?}", socket_copy, addr_copy);
+                            socket_copy.write_all(b"hello world");
+                            let mut response = String::new();
+                            socket_copy.read_to_string(&mut response);
+                            println!("{}", response);
+                            std::io::stdout().flush().unwrap();
+                        });
                     },
                     Err(e) => return String::from(format!("accept function failed: {:?}", e))
                 }
