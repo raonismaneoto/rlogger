@@ -3,6 +3,7 @@ use axum::{
     routing::{get, patch, post},
     Error, Router,
 };
+use handlers::logs::save_log_handler;
 use std::{net::SocketAddr, sync::Arc};
 use tokio::net::TcpListener;
 
