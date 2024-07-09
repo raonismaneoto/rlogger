@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
@@ -13,4 +15,10 @@ pub struct Log {
 pub struct LogAttribute {
     name: String,
     value: String
+}
+
+impl Display for Log {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Message: {}, Type: {}, Timestamp: {}, Index: {}, AttrsAmount: {}", self.message, self.log_type, self.timestamp, self.index, self.attributes.len())
+    }
 }

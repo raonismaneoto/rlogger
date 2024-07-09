@@ -1,6 +1,7 @@
 use core::time;
 use std::{fmt::Error, fs::{self, File}, io::{Read, Write}, os::unix::net::UnixListener, thread::{self, JoinHandle}};
 
+use bincode::deserialize;
 use serde::{Deserialize, Serialize};
 
 use crate::log::log::Log;
@@ -54,21 +55,29 @@ impl Catcher for SocketBasedCatcher {
     fn start(self) -> JoinHandle<String> {
         thread::spawn(|| {
             let listener = UnixListener::bind("/tmp/rst.sock").unwrap();
-            print!("listening on port {}", listener.local_addr().unwrap().as_pathname().unwrap().to_str().unwrap());
+            println!("listening on port {}", listener.local_addr().unwrap().as_pathname().unwrap().to_str().unwrap());
             std::io::stdout().flush().unwrap();
 
             loop {
                 match listener.accept() {
-                    Ok((socket, addr)) => {
+                    Ok((socket, _)) => {
                         let mut socket_copy = socket.try_clone().unwrap();
-                        let addr_copy = addr.clone();
                         thread::spawn(move || {
-                            println!("Got a client: {:?} - {:?}", socket_copy, addr_copy);
-                            socket_copy.write_all(b"hello world");
-                            let mut response = String::new();
-                            socket_copy.read_to_string(&mut response);
-                            println!("{}", response);
-                            std::io::stdout().flush().unwrap();
+                            let mut data = Vec::new();
+                            socket_copy.read_to_end(&mut data);
+                            
+                            let maybe_log = serde_json::from_slice::<Log>(&data);
+
+                            match maybe_log {
+                                Ok(log) => {
+                                    println!("{}", log);
+                                    std::io::stdout().flush().unwrap();
+                                },
+                                Err(err) => {
+                                    println!("unable to deserialize received log. {}", err.to_string());
+                                    std::io::stdout().flush().unwrap();
+                                }
+                            }
                         });
                     },
                     Err(e) => return String::from(format!("accept function failed: {:?}", e))
